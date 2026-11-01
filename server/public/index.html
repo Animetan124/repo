@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Панель станции</title>
+<style>
+  :root { --bg:#101116; --panel:#181a22; --line:#2a2d3a; --text:#e8e9ef; --mute:#9094a6; --acc:#8f7cff; --ok:#4cc38a; --bad:#ef6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, "Segoe UI", sans-serif; display:flex; min-height:100vh; }
+  nav { width:210px; background:var(--panel); border-right:1px solid var(--line); padding:16px 10px; flex-shrink:0; }
+  nav h1 { font-size:16px; margin:0 8px 14px; }
+  nav button { display:block; width:100%; text-align:left; background:none; border:0; color:var(--mute); padding:10px 12px; border-radius:20px; font:inherit; cursor:pointer; }
+  nav button.on { background:#2b2750; color:var(--text); }
+  nav button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px solid var(--acc); outline-offset:1px; }
+  main { flex:1; padding:22px; max-width:900px; min-width:0; }
+  h2 { margin:0 0 4px; font-size:22px; } .sub { color:var(--mute); margin:0 0 18px; }
+  section { display:none; } section.on { display:block; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+  label { display:block; font-size:13px; color:var(--mute); margin:10px 0 3px; }
+  input, select, textarea { width:100%; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 10px; font:inherit; }
+  textarea { font-family:ui-monospace, Consolas, monospace; font-size:13px; min-height:340px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; } .row > * { flex:1; min-width:140px; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  button.b { background:var(--acc); color:#13112a; border:0; border-radius:20px; padding:9px 18px; font:inherit; font-weight:600; cursor:pointer; }
+  button.b.sec { background:var(--line); color:var(--text); } button.b.red { background:var(--bad); color:#2a0b0b; }
+  pre { background:#0b0c10; border:1px solid var(--line); border-radius:8px; padding:12px; overflow:auto; max-height:420px; white-space:pre-wrap; word-break:break-word; margin:12px 0 0; font:12.5px/1.45 ui-monospace, Consolas, monospace; }
+  .pill { display:inline-block; padding:2px 12px; border-radius:20px; font-size:13px; background:var(--line); } .pill.ok { background:#12382a; color:var(--ok); } .pill.bad { background:#3d1717; color:var(--bad); }
+  .files { list-style:none; margin:10px 0 0; padding:0; max-height:260px; overflow:auto; }
+  .files li { padding:7px 10px; border-bottom:1px solid var(--line); cursor:pointer; } .files li:hover { background:#20222d; }
+  @media (max-width:720px) { body { flex-direction:column; } nav { width:100%; display:flex; overflow-x:auto; padding:8px; border:0; border-bottom:1px solid var(--line); } nav h1 { display:none; } nav button { width:auto; white-space:nowrap; } main { padding:14px; } }
+</style>
+</head>
+<body>
+<nav id="tabs">
+  <h1>Станция Mini 2</h1>
+  <button data-t="conn" class="on">Подключение</button>
+  <button data-t="bridge">Quasar Bridge</button>
+  <button data-t="files">Файлы и конфиги</button>
+  <button data-t="ai">ИИ и API</button>
+  <button data-t="term">Консоль</button>
+</nav>
+<main>
+<section id="conn" class="on">
+  <h2>Подключение к станции</h2><p class="sub">Вход на станцию по SSH. Настройки хранятся только в папке data на этом компьютере.</p>
+  <div class="card">
+    <div class="row"><div><label for="host">IP-адрес</label><input id="host"></div><div><label for="port">SSH-порт</label><input id="port" type="number"></div><div><label for="user">Пользователь</label><input id="user"></div></div>
+    <label for="password">Пароль (оставьте пустым, чтобы не менять)</label><input id="password" type="password" autocomplete="off">
+    <label for="keyPath">Или путь к приватному SSH-ключу (необязательно)</label><input id="keyPath" placeholder="C:\Users\you\.ssh\id_ed25519">
+    <label for="bridgeDir">Папка Quasar Bridge на станции</label><input id="bridgeDir">
+    <div class="btns"><button class="b" id="saveConn">Сохранить</button><button class="b sec" id="testConn">Проверить подключение</button><span id="connState"></span></div>
+    <pre id="connOut" hidden></pre>
+  </div>
+</section>
+
+<section id="bridge">
+  <h2>Quasar Bridge</h2><p class="sub">Команды control.sh на станции.</p>
+  <div class="card">
+    <div class="btns" style="margin-top:0">
+      <button class="b" data-a="status">Статус</button><button class="b sec" data-a="logs">Журнал</button>
+      <button class="b sec" data-a="check">Проверка</button><button class="b sec" data-a="check-backends">Проверка бэкендов</button>
+      <button class="b sec" data-a="restart">Перезапуск</button><button class="b red" data-a="rollback">Откат к Алисе</button>
+    </div>
+    <pre id="bridgeOut">Выберите действие.</pre>
+  </div>
+</section>
+
+<section id="files">
+  <h2>Файлы и конфиги</h2><p class="sub">Откройте config.json или runtime.env. Перед сохранением рядом создаётся копия .bak-дата.</p>
+  <div class="card">
+    <label for="dir">Папка</label>
+    <div class="row"><input id="dir"><button class="b sec" id="goDir" style="flex:0 0 auto">Открыть</button></div>
+    <ul class="files" id="list"></ul>
+  </div>
+  <div class="card" id="editor" hidden>
+    <label for="fpath">Файл</label><input id="fpath" readonly>
+    <label for="fbody">Содержимое</label><textarea id="fbody" spellcheck="false"></textarea>
+    <div class="btns"><button class="b" id="saveFile">Сохранить на станции</button><span id="fState"></span></div>
+  </div>
+</section>
+
+<section id="ai">
+  <h2>ИИ и API</h2><p class="sub">OpenAI-совместимый провайдер. Ключ хранится на этом компьютере и в браузер не возвращается.</p>
+  <div class="card">
+    <label for="baseUrl">Адрес API</label><input id="baseUrl">
+    <div class="row"><div><label for="model">Модель</label><input id="model"></div>
+      <div><label for="type">Тип API</label><select id="type"><option value="chat">Chat Completions</option><option value="responses">Responses</option></select></div></div>
+    <label for="apiKey">Ключ API (оставьте пустым, чтобы не менять)</label><input id="apiKey" type="password" autocomplete="off">
+    <div class="btns"><button class="b" id="saveAi">Сохранить</button><button class="b sec" id="testAi">Проверить соединение</button><span id="aiState"></span></div>
+    <pre id="aiOut" hidden></pre>
+  </div>
+  <p class="sub">Чтобы станция использовала эти значения, впишите их в runtime.env или config.json на вкладке «Файлы и конфиги».</p>
+</section>
+
+<section id="term">
+  <h2>Консоль</h2><p class="sub">Одна команда за раз, выполняется на станции от имени пользователя из настроек.</p>
+  <div class="card">
+    <div class="row"><input id="cmd" placeholder="ls -la /data/opt" aria-label="Команда"><button class="b" id="runCmd" style="flex:0 0 auto">Выполнить</button></div>
+    <pre id="termOut">Здесь появится вывод.</pre>
+  </div>
+</section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const api = async (p, body) => {
+  const r = await fetch('/api/' + p, { method: body ? 'POST' : 'GET', headers: { 'x-panel': '1', 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  return r.json();
+};
+const pill = (el, ok, t) => { el.className = 'pill ' + (ok ? 'ok' : 'bad'); el.textContent = t; };
+const show = (el, t) => { el.hidden = false; el.textContent = t; };
+const wait = (btn, f) => async () => { btn.disabled = true; try { await f(); } finally { btn.disabled = false; } };
+
+document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => {
+  document.querySelectorAll('#tabs button, section').forEach((e) => e.classList.remove('on'));
+  b.classList.add('on'); $(b.dataset.t).classList.add('on');
+  if (b.dataset.t === 'files' && !$('list').children.length) listDir();
+});
+
+async function init() {
+  const s = await api('settings');
+  for (const k of ['host', 'port', 'user', 'keyPath', 'bridgeDir']) $(k).value = s[k] ?? '';
+  $('password').placeholder = s.hasPassword ? '•••••••• (сохранён)' : '';
+  for (const k of ['baseUrl', 'model', 'type']) $(k).value = s.ai[k];
+  $('apiKey').placeholder = s.ai.hasKey ? '•••••••• (сохранён)' : '';
+  $('dir').value = s.bridgeDir;
+}
+const conn = () => ({ host: $('host').value.trim(), port: +$('port').value, user: $('user').value.trim(), password: $('password').value, keyPath: $('keyPath').value.trim(), bridgeDir: $('bridgeDir').value.trim() });
+const ai = () => ({ baseUrl: $('baseUrl').value.trim(), model: $('model').value.trim(), type: $('type').value, apiKey: $('apiKey').value });
+
+$('saveConn').onclick = wait($('saveConn'), async () => { await api('settings', { conn: conn() }); $('password').value = ''; await init(); pill($('connState'), true, 'Сохранено'); });
+$('testConn').onclick = wait($('testConn'), async () => {
+  $('connState').textContent = 'Проверяю…';
+  await api('settings', { conn: conn() }); $('password').value = '';
+  const r = await api('test');
+  pill($('connState'), r.ok, r.ok ? 'Подключено' : 'Ошибка'); show($('connOut'), r.out);
+});
+document.querySelectorAll('[data-a]').forEach((b) => b.onclick = wait(b, async () => {
+  if (b.dataset.a === 'rollback' && !confirm('Вернуть колонку к штатной Алисе? После этого нужна перезагрузка станции.')) return;
+  $('bridgeOut').textContent = 'Выполняю…';
+  const r = await api('bridge', { action: b.dataset.a });
+  $('bridgeOut').textContent = (r.out || '(пустой вывод)') + (r.code ? `\n[код выхода ${r.code}]` : '');
+}));
+
+async function listDir(p) {
+  const r = await api('ls?path=' + encodeURIComponent(p || $('dir').value));
+  $('dir').value = r.path.replace(/\/+$/, '') || '/';
+  const ul = $('list'); ul.textContent = '';
+  if (r.code) { ul.innerHTML = '<li></li>'; ul.firstChild.textContent = r.out || 'Папка недоступна'; return; }
+  const add = (name, up) => { const li = document.createElement('li'); li.textContent = name; li.onclick = () => open(name, up); ul.append(li); };
+  add('../', true); r.items.forEach((n) => add(n));
+}
+async function open(name, up) {
+  const base = $('dir').value.replace(/\/+$/, '');
+  if (up) return listDir(base.split('/').slice(0, -1).join('/') || '/');
+  if (name.endsWith('/')) return listDir(base + '/' + name.slice(0, -1));
+  const p = base + '/' + name, r = await api('file?path=' + encodeURIComponent(p));
+  $('editor').hidden = false; $('fpath').value = p; $('fbody').value = r.out; $('fState').textContent = '';
+}
+$('goDir').onclick = () => listDir();
+$('saveFile').onclick = wait($('saveFile'), async () => {
+  const r = await api('file', { path: $('fpath').value, content: $('fbody').value });
+  pill($('fState'), r.ok, r.ok ? 'Сохранено. Копия: ' + r.backup.split('/').pop() : 'Не сохранено: ' + r.out);
+});
+
+$('saveAi').onclick = wait($('saveAi'), async () => { await api('settings', { ai: ai() }); $('apiKey').value = ''; await init(); pill($('aiState'), true, 'Сохранено'); });
+$('testAi').onclick = wait($('testAi'), async () => {
+  $('aiState').textContent = 'Проверяю…';
+  const r = await api('ai/test', { ai: ai() });
+  pill($('aiState'), r.ok, r.ok ? `Работает, ${r.ms} мс` : `Ошибка ${r.status || ''}`); show($('aiOut'), r.body);
+});
+
+$('runCmd').onclick = wait($('runCmd'), async () => {
+  $('termOut').textContent = 'Выполняю…';
+  const r = await api('exec', { cmd: $('cmd').value });
+  $('termOut').textContent = (r.out || '(пустой вывод)') + (r.code ? `\n[код выхода ${r.code}]` : '');
+});
+$('cmd').onkeydown = (e) => { if (e.key === 'Enter') $('runCmd').click(); };
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+﻿node_modules/
+dist/
+.quasar/
+.vscode/
+*.log
+*.map
+server/data/settings.json
+
+.venv/

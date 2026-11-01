@@ -1,0 +1,15 @@
+[Unit]
+Description=Panel upravleniya Yandex Stanciei
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=__USER__
+WorkingDirectory=__DIR__
+EnvironmentFile=/etc/station-panel.env
+ExecStart=/usr/bin/node server.mjs
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
