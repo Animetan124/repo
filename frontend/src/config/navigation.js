@@ -1,4 +1,4 @@
-
+﻿
 export const navigation = [
   { label: 'Обзор', short: 'Обзор', icon: 'dashboard', to: '/', primary: true },
 
@@ -6,6 +6,7 @@ export const navigation = [
   { label: 'Подключение', short: 'SSH', icon: 'lan', to: '/Connection', primary: true },
   { label: 'Устройства', short: 'Устройства', icon: 'devices', to: '/Devices', primary: true },
   { label: 'ИИ и API', short: 'ИИ', icon: 'psychology', to: '/AI', primary: true },
+  { label: 'Алиса', short: 'Алиса', icon: 'smart_toy', to: '/alice', primary: true },
 
   { header: 'Настройки' },
   { label: 'Конфигурация', icon: 'settings', to: '/Configuration' },

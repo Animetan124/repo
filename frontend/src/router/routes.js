@@ -1,4 +1,4 @@
-
+﻿
 const routes = [
   {
     path: '/',
@@ -23,8 +23,13 @@ const routes = [
       },
       {
   path: 'AI',
-  component: () => import('@/pages/AiSettings.vue'),
-  meta: { title: 'ИИ и API', description: 'Настройки искусственного интеллекта и API' }
+        component: () => import('@/pages/AiSettings.vue'),
+        meta: { title: 'ИИ и API', description: 'Настройки искусственного интеллекта и API' }
+      },
+      {
+        path: 'alice',
+        component: () => import('@/pages/AlicePanel.vue'),
+        meta: { title: 'Алиса', description: 'Панель управления голосовым ассистентом' }
 },
       {
         path: 'Configuration',
