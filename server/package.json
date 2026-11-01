@@ -1,0 +1,7 @@
+{
+  "name": "station-panel",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": { "start": "node server.mjs" },
+  "dependencies": { "ssh2": "^1.16.0" }
+}

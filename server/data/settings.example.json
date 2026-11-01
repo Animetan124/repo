@@ -1,0 +1,14 @@
+﻿{
+  "host": "192.168.100.46",
+  "port": 2222,
+  "user": "root",
+  "password": "CHANGE_ME",
+  "keyPath": "",
+  "bridgeDir": "/data/opt/quasar-bridge",
+  "ai": {
+    "baseUrl": "https://your-llm-endpoint/v1",
+    "model": "your-model",
+    "apiKey": "CHANGE_ME",
+    "type": "chat"
+  }
+}

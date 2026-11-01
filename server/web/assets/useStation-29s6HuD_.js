@@ -1,0 +1,2 @@
+import{t as e}from"./index-CteF0oWJ.js";async function t(t,n){try{let e=await fetch(`/api/`+t,{method:n?`POST`:`GET`,headers:{"x-panel":`1`,"content-type":`application/json`},body:n?JSON.stringify(n):void 0});if(!e.ok)throw Error(`HTTP `+e.status);return await e.json()}catch{return e.create({type:`negative`,timeout:6e3,message:`Сервер панели недоступен. Запустите npm start в папке station-panel (порт 3100).`}),null}}export{t};
+//# sourceMappingURL=useStation-29s6HuD_.js.map
